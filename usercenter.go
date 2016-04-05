@@ -13,7 +13,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-func RecordFirstOrderId(ctx context.Context, uid, orderId int) error {
+// RecordUserOrder 记录用户完成的订单
+func RecordUserOrder(ctx context.Context, uid, orderId, storeId int) error {
 	usercenterConf := randServiceConf(usercenterService)
 	if usercenterConf == nil {
 		logger.Errorln(usercenterService, "config is empty")
@@ -26,6 +27,7 @@ func RecordFirstOrderId(ctx context.Context, uid, orderId int) error {
 
 	data := url.Values{
 		"order_id":  {strconv.Itoa(orderId)},
+		"store_id":  {strconv.Itoa(storeId)},
 		"timestamp": {strconv.FormatInt(time.Now().Unix(), 10)},
 		"from":      {from},
 	}

@@ -11,7 +11,7 @@ func init() {
 }
 
 func TestRecordFirstOrderId(t *testing.T) {
-	// err := depend.RecordFirstOrderId(nil, 6, 76)
+	// err := depend.RecordFirstOrderId(nil, 6, 76, 118)
 	// if err != nil {
 	// 	t.Errorf("record first order id error:%#v", err)
 	// 	return

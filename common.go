@@ -3,6 +3,9 @@ package depend
 import (
 	"encoding/json"
 	"math/rand"
+	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/polaris1119/logger"
@@ -28,7 +31,12 @@ type serviceConf struct {
 	failTimes int
 }
 
-var services = []string{senderService}
+const (
+	senderService     = "sender_service"
+	usercenterService = "usercenter_service"
+)
+
+var services = []string{senderService, usercenterService}
 
 var (
 	servicesMap = make(map[string][]*serviceConf, len(services))
@@ -113,4 +121,14 @@ func getServiceSecret(serviceName string) string {
 		return serviceConfSlice[0].secret
 	}
 	return ""
+}
+
+func putForm(client *http.Client, apiUrl string, data url.Values) (*http.Response, error) {
+	req, err := http.NewRequest("PUT", apiUrl, strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	return client.Do(req)
 }

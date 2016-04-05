@@ -13,8 +13,6 @@ import (
 	"github.com/polaris1119/logger"
 )
 
-const senderService = "sender_service"
-
 func SendEmail(ctx context.Context, subject, content, tos string) error {
 	senderConf := randServiceConf(senderService)
 	if senderConf == nil {

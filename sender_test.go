@@ -1,8 +1,9 @@
 package depend_test
 
 import (
-	"depend"
 	"testing"
+
+	"github.com/zhimabl/depend"
 )
 
 func init() {

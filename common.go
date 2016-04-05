@@ -9,6 +9,19 @@ import (
 	"github.com/polaris1119/nosql"
 )
 
+var (
+	// 调用方的名称，如 usercenter
+	from string
+	// 是否是生成环境
+	isPro bool
+)
+
+// Init 调用方需要先调用该方法，初始化 depend
+func Init(_from string, _isPro bool) {
+	from = _from
+	isPro = _isPro
+}
+
 type serviceConf struct {
 	httpAddr  string
 	secret    string

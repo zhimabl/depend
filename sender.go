@@ -2,7 +2,6 @@ package depend
 
 import (
 	"errors"
-	"global"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -33,7 +32,7 @@ func SendEmail(ctx context.Context, subject, content, tos string) error {
 		"from_name": {fromName()},
 		"tos":       {tos},
 		"timestamp": {strconv.FormatInt(time.Now().Unix(), 10)},
-		"from":      {global.App.Name},
+		"from":      {from},
 	}
 
 	data.Set("sign", goutils.GenSign(data, getServiceSecret(senderService)))
@@ -62,12 +61,12 @@ func ServiceWarning(ctx context.Context, emailInfo map[string]string, smsContent
 	}
 
 	data := url.Values{
-		"subject":   {emailInfo["subject"] + "-服务【" + global.App.Name + "】"},
+		"subject":   {emailInfo["subject"] + "-服务【" + from + "】"},
 		"content":   {emailInfo["content"]},
 		"from_name": {fromName()},
 		"gename":    {"tech_services"},
 		"timestamp": {strconv.FormatInt(time.Now().Unix(), 10)},
-		"from":      {global.App.Name},
+		"from":      {from},
 	}
 
 	if smsContent != "" {
@@ -89,7 +88,7 @@ func ServiceWarning(ctx context.Context, emailInfo map[string]string, smsContent
 }
 
 func fromName() string {
-	if global.OnlineEnv() {
+	if isPro {
 		return "线上服务报警"
 	}
 

@@ -5,11 +5,12 @@ import (
 	"runtime"
 
 	"github.com/polaris1119/logger"
+	"golang.org/x/net/context"
 )
 
 // ProcessNotInterruptErr 处理一些非中断型错误，一般不会出现。
 // 这些错误发生时，程序依然往下执行，这里只是记录错误，同时报警
-func ProcessNotInterruptErr(idName string, idVal interface{}, err error) {
+func ProcessNotInterruptErr(ctx context.Context, idName string, idVal interface{}, err error) {
 	if err == nil {
 		return
 	}
@@ -20,11 +21,23 @@ func ProcessNotInterruptErr(idName string, idVal interface{}, err error) {
 	if ok {
 		errMsg = fmt.Sprintf("%s in file(%q) on line(%d)", errMsg, file, line)
 	}
-	logger.Infoln(errMsg)
+	recordLog(ctx, errMsg)
 
 	emailInfo := map[string]string{
 		"subject": "非中断型错误发生了，请留意！",
 		"content": errMsg,
 	}
-	go ServiceWarning(nil, emailInfo, fmt.Sprintf("非中断型错误发生了，请留意。%s=%q", idName, idVal))
+	go ServiceWarning(ctx, emailInfo, fmt.Sprintf("非中断型错误发生了，请留意。%s=%q", idName, idVal))
+}
+
+func recordLog(ctx context.Context, errMsg string) {
+	if ctx != nil {
+		_logger, ok := ctx.Value("logger").(*logger.Logger)
+		if ok {
+			_logger.Errorln(errMsg)
+			return
+		}
+	}
+
+	logger.Errorln(errMsg)
 }

@@ -15,7 +15,7 @@ func ProcessNotInterruptErr(ctx context.Context, idName string, idVal interface{
 		return
 	}
 
-	errMsg := fmt.Sprintf("%s=%q has error:%#v", idName, idVal, err)
+	errMsg := fmt.Sprintf("%q=%v has error:%#v", idName, idVal, err)
 
 	_, file, line, ok := runtime.Caller(1)
 	if ok {

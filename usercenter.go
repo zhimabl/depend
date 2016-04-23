@@ -1,52 +1,35 @@
 package depend
 
 import (
-	"errors"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 
-	"github.com/polaris1119/goutils"
-	"github.com/polaris1119/logger"
+	"github.com/bitly/go-simplejson"
+
 	"golang.org/x/net/context"
 )
 
 // RecordUserOrder 记录用户完成的订单
 func RecordUserOrder(ctx context.Context, uid, orderId, storeId int) error {
-	usercenterConf := randServiceConf(usercenterService)
-	if usercenterConf == nil {
-		logger.Errorln(usercenterService, "config is empty")
-		return errors.New("usercenter service config is empty")
-	}
-
-	httpClient := &http.Client{
-		Timeout: 60 * time.Second,
-	}
-
 	data := url.Values{
-		"order_id":  {strconv.Itoa(orderId)},
-		"store_id":  {strconv.Itoa(storeId)},
-		"timestamp": {strconv.FormatInt(time.Now().Unix(), 10)},
-		"from":      {from},
+		"order_id": {strconv.Itoa(orderId)},
+		"store_id": {strconv.Itoa(storeId)},
 	}
-
-	data.Set("sign", goutils.GenSign(data, getServiceSecret(usercenterService)))
-
-	apiUrl := "http://" + usercenterConf.httpAddr + "/user/" + strconv.Itoa(uid)
-	resp, err := putForm(httpClient, apiUrl, data)
+	_, err := callService(usercenterService, "PUT", "/user/"+strconv.Itoa(uid), data)
 	if err != nil {
-		logger.Errorf("url:%q, data:%v, error: %v", apiUrl, data, err)
-		return err
-	}
-	defer resp.Body.Close()
-
-	result, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		logger.Errorf("url:%q, data:%v, result: %s, error: %v", apiUrl, data, result, err)
 		return err
 	}
 
 	return nil
+}
+
+// ReadUserDevice 获取用户设备信息，用于推送，比如 client_id，client_source
+func ReadUserDevice(ctx context.Context, uid int) *simplejson.Json {
+	data := url.Values{"uid": {strconv.Itoa(uid)}}
+	result, err := callService(usercenterService, "GET", "/device/client", data)
+	if err != nil {
+		return nil
+	}
+
+	return result.Get("user_device")
 }

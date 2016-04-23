@@ -2,12 +2,18 @@ package depend
 
 import (
 	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/bitly/go-simplejson"
+	"github.com/polaris1119/goutils"
 	"github.com/polaris1119/logger"
 	"github.com/polaris1119/nosql"
 )
@@ -91,6 +97,77 @@ func LoadServicesConf() {
 	locker.Lock()
 	servicesMap = tmpServicesMap
 	locker.Unlock()
+}
+
+type resultStruct struct {
+	Code int              `json:"code"`
+	Msg  string           `json:"msg"`
+	Data *simplejson.Json `json:"data"`
+}
+
+var ServiceFailErr = errors.New("remote service return code is not 0")
+
+// callService 调用远程服务
+// TODO: 重试指数退避算法；错误自动报警？
+func callService(serviceName, method, uri string, data url.Values) (*simplejson.Json, error) {
+	serviceConf := randServiceConf(serviceName)
+	if serviceConf == nil {
+		logger.Errorln(serviceName, "config is empty")
+		return nil, errors.New("usercenter service config is empty")
+	}
+
+	httpClient := &http.Client{
+		Timeout: 60 * time.Second,
+	}
+
+	data.Set("timestamp", strconv.FormatInt(time.Now().Unix(), 10))
+	data.Set("from", from)
+	data.Set("sign", goutils.GenSign(data, getServiceSecret(serviceName)))
+
+	apiUrl := "http://" + serviceConf.httpAddr + uri
+
+	var (
+		resp *http.Response
+		err  error
+	)
+	switch strings.ToUpper(method) {
+	case "PUT":
+		resp, err = putForm(httpClient, apiUrl, data)
+	case "POST":
+		resp, err = httpClient.PostForm(apiUrl, data)
+	case "GET":
+		resp, err = httpClient.Get(apiUrl + "?" + data.Encode())
+	}
+	if err != nil {
+		logger.Errorf("url:%q, data:%v, error: %v", apiUrl, data, err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		logger.Errorf("url:%q, data:%v, status: %s(%d)", apiUrl, data, resp.Status, resp.StatusCode)
+		return nil, errors.New("status code is not ok")
+	}
+
+	resultBuf, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logger.Errorf("url:%q, data:%v, result: %s, error: %v", apiUrl, data, resultBuf, err)
+		return nil, err
+	}
+
+	result := &resultStruct{}
+	err = json.Unmarshal(resultBuf, result)
+	if err != nil {
+		return nil, err
+	}
+
+	// 业务失败
+	if result.Code != 0 {
+		logger.Errorf("url:%q, data:%v, result: %s, code not 0", apiUrl, data, resultBuf)
+		return nil, ServiceFailErr
+	}
+
+	return result.Data, nil
 }
 
 func getServiceConfSlice(serviceName string) []*serviceConf {

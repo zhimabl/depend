@@ -39,3 +39,20 @@ func TestReadUserDevice(t *testing.T) {
 		}
 	}
 }
+
+func TestIsChannelUser(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"18511121906", true},
+		{"18511121903", false},
+	}
+
+	for _, tt := range tests {
+		actual := depend.IsChannelUser(nil, tt.input)
+		if actual != tt.expected {
+			t.Errorf("unexport(%q) = %t, want %t", tt.input, actual, tt.expected)
+		}
+	}
+}

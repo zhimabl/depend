@@ -33,3 +33,13 @@ func ReadUserDevice(ctx context.Context, uid int) *simplejson.Json {
 
 	return result.Get("user_device")
 }
+
+// IsChannelUser 判断手机号是否是渠道用户（预注册过）
+func IsChannelUser(ctx context.Context, mobile string) bool {
+	result, err := callService(usercenterService, "GET", "/channel/"+mobile, url.Values{})
+	if err != nil {
+		return false
+	}
+
+	return result.Get("channel_user").MustBool(false)
+}

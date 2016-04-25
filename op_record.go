@@ -1,7 +1,6 @@
 package depend
 
 import (
-	"db"
 	"encoding/json"
 	"errors"
 	"net/url"
@@ -47,7 +46,7 @@ func RecordUpdateOp(ctx context.Context, engine *xorm.Engine, bean interface{}, 
 	tableInfo := engine.TableInfo(bean)
 
 	tableSchemas := make([]*TableSchema, 0)
-	err = db.MasterDB.Sql("show full fields from " + tableInfo.Name).Find(&tableSchemas)
+	err = engine.Sql("show full fields from " + tableInfo.Name).Find(&tableSchemas)
 	if err != nil {
 		logger.Errorln("RecordUpdateOp show full fields error:", err)
 		return err

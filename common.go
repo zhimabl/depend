@@ -40,6 +40,7 @@ type serviceConf struct {
 const (
 	senderService     = "sender_service"
 	usercenterService = "usercenter_service"
+	opRecordService   = "op_record_service"
 )
 
 var services = []string{senderService, usercenterService}

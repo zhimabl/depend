@@ -114,7 +114,7 @@ func callService(serviceName, method, uri string, data url.Values) (*simplejson.
 	serviceConf := randServiceConf(serviceName)
 	if serviceConf == nil {
 		logger.Errorln(serviceName, "config is empty")
-		return nil, errors.New("usercenter service config is empty")
+		return nil, errors.New(serviceName + " service config is empty")
 	}
 
 	httpClient := &http.Client{

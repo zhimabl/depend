@@ -34,9 +34,30 @@ func ReadUserDevice(ctx context.Context, uid int) *simplejson.Json {
 	return result.Get("user_device")
 }
 
+// ReadUser 获取用户信息
+func ReadUser(ctx context.Context, uid int) *simplejson.Json {
+	result, err := callService(usercenterService, "POST", "/user/"+strconv.Itoa(uid), url.Values{})
+	if err != nil {
+		return nil
+	}
+
+	return result.Get("user")
+}
+
 // IsChannelUser 判断手机号是否是渠道用户（预注册过）
 func IsChannelUser(ctx context.Context, mobile string) bool {
 	result, err := callService(usercenterService, "GET", "/channel/"+mobile, url.Values{})
+	if err != nil {
+		return false
+	}
+
+	return result.Get("channel_user").MustBool(false)
+}
+
+// IsChannelUser 判断UID是否是渠道用户（预注册过）
+func IsChannelUserByUid(ctx context.Context, uid int) bool {
+	data := url.Values{"uid": {strconv.Itoa(uid)}}
+	result, err := callService(usercenterService, "GET", "/channel/user", data)
 	if err != nil {
 		return false
 	}

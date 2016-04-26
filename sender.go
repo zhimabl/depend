@@ -1,6 +1,7 @@
 package depend
 
 import (
+	"errors"
 	"net/url"
 
 	"golang.org/x/net/context"
@@ -34,6 +35,29 @@ func ServiceWarning(ctx context.Context, emailInfo map[string]string, smsContent
 		data.Set("sms_content", smsContent)
 	}
 	_, err := callService(senderService, "POST", "/email/group", data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SendSms 给用户发送短信，smsTypes 默认发送通知。支持的值：01-验证码;02-通知;03-营销
+func SendSms(ctx context.Context, mobile, content string, smsTypes ...string) error {
+	if mobile == "" || content == "" {
+		return errors.New("mobile or content is empty!")
+	}
+
+	data := url.Values{
+		"mobile":  {mobile},
+		"content": {content},
+	}
+
+	if len(smsTypes) > 0 {
+		data.Set("sms_type", smsTypes[0])
+	}
+
+	_, err := callService(senderService, "POST", "/sms/unicast", data)
 	if err != nil {
 		return err
 	}

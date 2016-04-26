@@ -36,7 +36,7 @@ func ReadUserDevice(ctx context.Context, uid int) *simplejson.Json {
 
 // ReadUser 获取用户信息
 func ReadUser(ctx context.Context, uid int) *simplejson.Json {
-	result, err := callService(usercenterService, "POST", "/user/"+strconv.Itoa(uid), url.Values{})
+	result, err := callService(usercenterService, "GET", "/user/"+strconv.Itoa(uid), url.Values{})
 	if err != nil {
 		return nil
 	}

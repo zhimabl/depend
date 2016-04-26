@@ -161,7 +161,7 @@ func genOpRecord(engine *xorm.Engine, bean interface{}, opUser string) (map[stri
 	priVal := val.FieldByName(fieldName)
 
 	opRecord := map[string]interface{}{
-		"talbe_name": tableInfo.Name,
+		"table_name": tableInfo.Name,
 		"pri_key":    priKey,
 		"pri_val":    priVal,
 		"op_user":    opUser,

@@ -43,7 +43,7 @@ const (
 	opRecordService   = "op_record_service"
 )
 
-var services = []string{senderService, usercenterService}
+var services = []string{senderService, usercenterService, opRecordService}
 
 var (
 	servicesMap = make(map[string][]*serviceConf, len(services))

@@ -158,7 +158,16 @@ func genOpRecord(engine *xorm.Engine, bean interface{}, opUser string) (map[stri
 	priKey := priKeys[0]
 
 	fieldName := tableInfo.GetColumn(priKey).FieldName
-	priVal := val.FieldByName(fieldName)
+	var priVal interface{}
+	priValue := val.FieldByName(fieldName)
+	switch priValue.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		priVal = priValue.Int()
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		priVal = priValue.Uint()
+	default:
+		return nil, errors.New("pk value must be integer!")
+	}
 
 	opRecord := map[string]interface{}{
 		"table_name": tableInfo.Name,

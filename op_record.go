@@ -6,7 +6,9 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"time"
 
+	"github.com/fatih/structs"
 	"github.com/go-xorm/xorm"
 	"github.com/polaris1119/goutils"
 	"github.com/polaris1119/logger"
@@ -57,31 +59,52 @@ func RecordUpdateOp(ctx context.Context, engine *xorm.Engine, bean interface{}, 
 		tableSchemaMap[tableSchema.Field] = tableSchema.Comment
 	}
 
-	beanVal := reflect.ValueOf(bean)
-	if beanVal.Kind() == reflect.Ptr {
-		beanVal = beanVal.Elem()
-	}
-
 	length := len(changeVals)
-	fields := make([]string, length)
-	fieldNames := make([]string, length)
-	oldValues := make([]interface{}, length)
-	newValues := make([]interface{}, length)
+	fields := make([]string, 0, length)
+	fieldNames := make([]string, 0, length)
+	oldValues := make([]interface{}, 0, length)
+	newValues := make([]interface{}, 0, length)
 
-	i := 0
-	for field, val := range changeVals {
-		fields[i] = field
+	s := structs.New(bean)
+
+	for field, newVal := range changeVals {
+		var oldVal interface{}
+		sField, ok := s.FieldOk(goutils.CamelName(field))
+		if ok {
+			oldVal = sField.Value()
+		} else {
+			sFields := s.Fields()
+			for _, f := range sFields {
+				if f.Tag("xorm") == field {
+					oldVal = f.Value()
+					break
+				}
+			}
+		}
+
+		// 排除时间的变更
+		if _, ok := oldVal.(time.Time); ok {
+			continue
+		}
+		if equal(oldVal, newVal) {
+			continue
+		}
+
+		fields = append(fields, field)
 
 		comment := tableSchemaMap[field]
 		if comment == "" {
 			comment = field
 		}
-		fieldNames[i] = comment
+		fieldNames = append(fieldNames, comment)
 
-		oldValues[i] = beanVal.FieldByName(field)
-		newValues[i] = val
+		oldValues = append(oldValues, oldVal)
+		newValues = append(newValues, newVal)
+	}
 
-		i++
+	if len(fields) == 0 {
+		logger.Infoln("table_name", tableInfo.Name, "not any change!")
+		return nil
 	}
 
 	opRecord["fields"] = strings.Join(fields, ",")
@@ -177,4 +200,60 @@ func genOpRecord(engine *xorm.Engine, bean interface{}, opUser string) (map[stri
 	}
 
 	return opRecord, nil
+}
+
+func equal(x, y interface{}) bool {
+	if x == y {
+		return true
+	}
+
+	if reflect.DeepEqual(x, y) {
+		return true
+	}
+
+	defer func() {
+		if err := recover(); err != nil {
+			logger.Errorln("equal panic:", err)
+		}
+	}()
+
+	xVal := reflect.ValueOf(x)
+	switch xVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		var y1 int64
+		x1 := xVal.Int()
+		if strY, ok := y.(string); ok {
+			y1 = goutils.MustInt64(strY)
+		} else if fY, ok := y.(float64); ok {
+			y1 = int64(fY)
+		} else {
+			y1 = reflect.ValueOf(y).Int()
+		}
+
+		return x1 == y1
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		var y1 uint64
+		x1 := xVal.Uint()
+		if strY, ok := y.(string); ok {
+			y1 = uint64(goutils.MustInt64(strY))
+		} else if fY, ok := y.(float64); ok {
+			y1 = uint64(fY)
+		} else {
+			y1 = reflect.ValueOf(y).Uint()
+		}
+
+		return x1 == y1
+	case reflect.Float32, reflect.Float64:
+		var y1 float64
+		x1 := xVal.Float()
+		if strY, ok := y.(string); ok {
+			y1 = goutils.MustFloat(strY)
+		} else {
+			y1 = reflect.ValueOf(y).Float()
+		}
+
+		return x1 == y1
+	}
+
+	return false
 }

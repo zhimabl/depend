@@ -42,7 +42,7 @@ func ServiceWarning(ctx context.Context, emailInfo map[string]string, smsContent
 	return nil
 }
 
-// SendSms 给用户发送短信，smsTypes 默认发送通知。支持的值：01-验证码;02-通知;03-营销
+// SendSms 给用户发送短信，smsTypes 默认发送通知。支持的值：00-验证码;01-通知;02-营销
 func SendSms(ctx context.Context, mobile, content string, smsTypes ...string) error {
 	if mobile == "" || content == "" {
 		return errors.New("mobile or content is empty!")

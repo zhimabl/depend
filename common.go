@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bitly/go-simplejson"
+	simplejson "github.com/bitly/go-simplejson"
 	"github.com/polaris1119/goutils"
 	"github.com/polaris1119/logger"
 	"github.com/polaris1119/nosql"
@@ -41,9 +41,10 @@ const (
 	senderService     = "sender_service"
 	usercenterService = "usercenter_service"
 	opRecordService   = "op_record_service"
+	voucherService    = "voucher_service"
 )
 
-var services = []string{senderService, usercenterService, opRecordService}
+var services = []string{senderService, usercenterService, opRecordService, voucherService}
 
 var (
 	servicesMap = make(map[string][]*serviceConf, len(services))

@@ -46,9 +46,10 @@ func ThirdOrderFinish(ctx context.Context, orderId string) error {
 }
 
 // ThirdOrderCancel 取消
-func ThirdOrderCancel(ctx context.Context, orderId string) error {
+func ThirdOrderCancel(ctx context.Context, orderId, reason string) error {
 	data := url.Values{
 		"order_id": {orderId},
+		"reason":   {reason},
 	}
 	_, err := callService(thirdService, "POST", "/order/cancel", data)
 	if err != nil {

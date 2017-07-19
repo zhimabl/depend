@@ -65,6 +65,52 @@ func SendSms(ctx context.Context, mobile, content string, smsTypes ...string) er
 	return nil
 }
 
+// SendDingtalkMsg 给员工发送钉钉消息
+func SendDingtalkMsg(ctx context.Context, userid, agentid, content string, msgtypes ...string) error {
+	if userid == "" || agentid == "" || content == "" {
+		return errors.New("userid or agentid or content is empty!")
+	}
+
+	data := url.Values{
+		"touser":  {userid},
+		"agentid": {agentid},
+		"content": {content},
+	}
+
+	if len(msgtypes) > 0 {
+		data.Set("msgtype", msgtypes[0])
+	}
+
+	_, err := callService(senderService, "POST", "/dingtalk/send", data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SendAppMsg App push
+// destType: driver 司机端；supply 供货宝；shopper 芝麻掌柜
+func SendAppMsg(ctx context.Context, userid, content, iosMsg, destType string) error {
+	if userid == "" || content == "" {
+		return errors.New("userid or content or content is empty!")
+	}
+
+	data := url.Values{
+		"userid":    {userid},
+		"content":   {content},
+		"ios_msg":   {iosMsg},
+		"dest_type": {destType},
+	}
+
+	_, err := callService(senderService, "POST", "/dingtalk/send", data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func fromName() string {
 	if isPro {
 		return "线上服务报警"

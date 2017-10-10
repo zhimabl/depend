@@ -51,6 +51,7 @@ func SendSms(ctx context.Context, mobile, content string, smsTypes ...string) er
 	data := url.Values{
 		"mobile":  {mobile},
 		"content": {content},
+		"sp":      {"xuanwu"},
 	}
 
 	if len(smsTypes) > 0 {
@@ -103,7 +104,7 @@ func SendAppMsg(ctx context.Context, userid, content, iosMsg, destType string) e
 		"dest_type": {destType},
 	}
 
-	_, err := callService(senderService, "POST", "/dingtalk/send", data)
+	_, err := callService(senderService, "POST", "/push/unicast", data)
 	if err != nil {
 		return err
 	}

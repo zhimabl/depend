@@ -24,10 +24,11 @@ func SendVoucher(uid, typ, state int) error {
 }
 
 // ReturnVoucher 返回优惠券：一般指订单取消后
-func ReturnVoucher(ctx context.Context, voucherID int) error {
+func ReturnVoucher(ctx context.Context, voucherID, merchantID int) error {
 	data := url.Values{
-		"voucher_id": {strconv.Itoa(voucherID)},
-		"async":      {"true"},
+		"voucher_id":  {strconv.Itoa(voucherID)},
+		"merchant_id": {strconv.Itoa(merchantID)},
+		"async":       {"true"},
 	}
 	_, err := callService(couponService, "POST", "/voucher/go_back", data)
 	if err != nil {

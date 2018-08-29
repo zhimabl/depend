@@ -11,7 +11,7 @@ func init() {
 }
 
 func TestReturnVoucher(t *testing.T) {
-	err := depend.ReturnVoucher(nil, 1)
+	err := depend.ReturnVoucher(nil, 1, 1)
 	if err != nil {
 		t.Errorf("return voucher error:%#v", err)
 		return

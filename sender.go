@@ -90,6 +90,36 @@ func SendDingtalkMsg(ctx context.Context, userid, agentid, content string, msgty
 	return nil
 }
 
+// SendDingtalkBotMsg 通过机器人给群发送钉钉消息
+// 参考：https://open-doc.dingtalk.com/docs/doc.htm?spm=a219a.7629140.0.0.karFPe&treeId=257&articleId=105735&docType=1
+func SendDingtalkBotMsg(ctx context.Context, webhook, title, content, msgtype string, extra ...string) error {
+	if webhook == "" || content == "" {
+		return errors.New("webhook or content is empty!")
+	}
+
+	if msgtype == "" {
+		msgtype = "text"
+	}
+
+	data := url.Values{
+		"url":     {webhook},
+		"msgtype": {msgtype},
+		"title":   {title},
+		"content": {content},
+	}
+
+	if len(extra) > 0 {
+		data.Set("extra", extra[0])
+	}
+
+	_, err := callService(senderService, "POST", "/dingtalk/bot", data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SendAppMsg App push
 // destType: driver 司机端；supply 供货宝；shopper 芝麻掌柜
 func SendAppMsg(ctx context.Context, userid, content, iosMsg, destType string) error {
